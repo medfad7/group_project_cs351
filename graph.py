@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import deque
+import random
 from typing import List, Dict, Optional
 
 
@@ -83,3 +84,38 @@ class Graph:
             max_flow += path_flow
 
         return max_flow
+    
+    def generate_random_graph(num_nodes: int, num_edges: int, max_edge_capacity: int = 10) -> Graph:
+        if num_edges < num_nodes - 1:
+            raise ValueError("Number of edges must be at least num_nodes - 1 to ensure connectivity.")
+
+        nodes = {f"Node{i}": Node(f"Node{i}") for i in range(num_nodes)}
+        edges = set()
+        node_list = list(nodes.values())
+
+        unconnected = set(node_list)
+        connected = set()
+
+        current = unconnected.pop()
+        connected.add(current)
+
+        while unconnected:
+            # Connect a random connected node to an unconnected node
+            target = random.choice(list(unconnected))
+            capacity = random.randint(1, max_edge_capacity)
+            current.add_edge(target, capacity)
+            edges.add((current, target))
+            unconnected.remove(target)
+            connected.add(target)
+            current = target  # Move to the newly connected node
+
+        # Step 2: Add additional random edges to meet num_edges
+        while len(edges) < num_edges:
+            u = random.choice(node_list)
+            v = random.choice(node_list)
+            if u != v and (u, v) not in edges and (v, u) not in edges:  # Avoid duplicates
+                capacity = random.randint(1, max_edge_capacity)
+                u.add_edge(v, capacity)
+                edges.add((u, v))
+
+        return Graph(nodes)
