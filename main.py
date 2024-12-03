@@ -1,6 +1,6 @@
 import time
 import matplotlib.pyplot as plt
-from graph import Graph  # Assuming the Graph and other classes are already defined
+from graph import Graph
 
 def measure_runtime_vs_maxflow_E():
     # Lists to store graph sizes, computed max flow * E values, and runtimes
