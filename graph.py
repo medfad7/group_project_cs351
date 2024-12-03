@@ -11,6 +11,7 @@ class Edge:
         self.flow = 0
         self.reverse: Optional[Edge] = None  # Reverse edge reference
 
+    def __repr__(self): return f"Edge to {self.target}: {self.flow} / {self.capacity}"
 
 class Node:
     def __init__(self, name: str) -> None:
@@ -20,7 +21,7 @@ class Node:
     def add_edge(self, target: Node, capacity: float) -> None:
 
         forward_edge = Edge(target, capacity)
-        reverse_edge = Edge(self, 0)  # Reverse edge has 0 capacity initially
+        reverse_edge = Edge(self, capacity)  # Reverse edge has 0 capacity initially
 
         forward_edge.reverse = reverse_edge
         reverse_edge.reverse = forward_edge
@@ -28,10 +29,61 @@ class Node:
         self.edges.append(forward_edge)
         target.edges.append(reverse_edge)
 
+    def __repr__(self): return f"Node {self.name}"
 
 class Graph:
     def __init__(self, nodes: Dict[str, Node]) -> None:
         self.nodes = nodes
+        self.level = {}  # Stores the level graph for BFS
+
+    def dinic_bfs(self, source: Node, sink: Node) -> bool:
+        """
+        BFS to construct the level graph and check if a path exists from source to sink.
+        """
+        self.level = {node: -1 for node in self.nodes.values()}  # Reset levels
+        queue = deque([source])
+        self.level[source] = 0
+
+        while queue:
+            current = queue.popleft()
+            for edge in current.edges:
+                if self.level[edge.target] == -1 and edge.flow < edge.capacity:  # Not visited and has residual capacity
+                    self.level[edge.target] = self.level[current] + 1
+                    queue.append(edge.target)
+
+        return self.level[sink] != -1  # True if sink is reachable
+
+    def dinic_dfs(self, current: Node, sink: Node, flow: float) -> float:
+        """
+        DFS to send flow from source to sink in the level graph.
+        """
+        if current == sink:
+            return flow
+
+        for edge in current.edges:
+            residual_capacity = edge.capacity - edge.flow
+            if self.level[edge.target] == self.level[current] + 1 and residual_capacity > 0:
+                bottleneck_flow = self.dinic_dfs(edge.target, sink, min(flow, residual_capacity))
+
+                if bottleneck_flow > 0:
+                    edge.flow += bottleneck_flow
+                    edge.reverse.flow -= bottleneck_flow
+                    return bottleneck_flow
+        return 0
+
+    def dinic(self, source: Node, sink: Node) -> float:
+        """
+        Dinic's algorithm implementation.
+        """
+        max_flow = 0
+
+        while self.dinic_bfs(source, sink):  # Construct level graph
+            flow = float('inf')
+            while flow:
+                flow = self.dinic_dfs(source, sink, float('inf'))
+                max_flow += flow
+
+        return max_flow
 
     def bfs(self, source: Node, sink: Node) -> Optional[Dict[Node, Edge]]:
         """
@@ -85,6 +137,12 @@ class Graph:
 
         return max_flow
     
+    def reset_calculated_flows(self):
+        #Reset Flows
+        for node in self.nodes.values():
+            for edge in node.edges:
+                edge.flow = 0
+
     def generate_random_graph(num_nodes: int, num_edges: int, max_edge_capacity: int = 10) -> Graph:
         if num_edges < num_nodes - 1:
             raise ValueError("Number of edges must be at least num_nodes - 1 to ensure connectivity.")
