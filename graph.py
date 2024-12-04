@@ -31,7 +31,7 @@ class Node:
         self.edges.append(forward_edge)
         target.edges.append(reverse_edge)
 
-    def __repr__(self): return f"Node {self.name}"
+    def __repr__(self): return self.name
 
 class Graph:
     def __init__(self, nodes: Dict[str, Node]) -> None:
@@ -72,6 +72,24 @@ class Graph:
                     edge.reverse.flow -= bottleneck_flow
                     return bottleneck_flow
         return 0
+    
+    def dinic_dfs_demo(self, current: Node, sink: Node, flow: float) -> tuple[float, List[Node]]:
+        """
+        DFS to send flow from source to sink in the level graph.
+        """
+        if current == sink:
+            return flow, [current]
+
+        for edge in current.edges:
+            residual_capacity = edge.capacity - edge.flow
+            if self.level[edge.target] == self.level[current] + 1 and residual_capacity > 0:
+                bottleneck_flow, nodes = self.dinic_dfs_demo(edge.target, sink, min(flow, residual_capacity))
+
+                if bottleneck_flow > 0:
+                    edge.flow += bottleneck_flow
+                    edge.reverse.flow -= bottleneck_flow
+                    return bottleneck_flow, [current] + nodes 
+        return 0, []
 
     def dinic(self, source: Node, sink: Node) -> float:
         """
@@ -84,6 +102,28 @@ class Graph:
             while flow:
                 flow = self.dinic_dfs(source, sink, float('inf'))
                 max_flow += flow
+
+        return max_flow
+    
+    def dinic_demo(self, source: Node, sink: Node) -> float:
+        """
+        Dinic's algorithm implementation.
+        """
+        max_flow = 0
+        step = 1
+
+        while self.dinic_bfs(source, sink):  # Construct level graph
+            print(f"Step {step}")
+            print(f"Level Graph", self.level)
+
+            flow = float('inf')
+            while flow:
+                flow, nodes = self.dinic_dfs_demo(source, sink, float('inf'))
+                print(f" Found Flow {flow}", nodes)
+                max_flow += flow
+            print(f" Stopping Flow reached, new max flow: {max_flow}")
+
+            step += 1
 
         return max_flow
 
@@ -159,7 +199,7 @@ class Graph:
                     G.add_edge(node.name, edge.target.name, label=f"{capacity_label}\n{flow_label}")
 
         # Draw the graph with custom settings
-        pos = nx.spring_layout(G)  # Set positions for all nodes
+        pos = nx.spring_layout(G, seed=1)  # Set positions for all nodes
         plt.figure(figsize=(8, 6))
         nx.draw(G, pos, with_labels=True, node_size=3000, node_color="lightblue", font_size=12, font_weight="bold", arrows=True)
         
