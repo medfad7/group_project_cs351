@@ -2,6 +2,8 @@ from __future__ import annotations
 from collections import deque
 import random
 from typing import List, Dict, Optional
+import networkx as nx
+import matplotlib.pyplot as plt
 
 
 class Edge:
@@ -134,6 +136,89 @@ class Graph:
 
             # Add path flow to max flow
             max_flow += path_flow
+
+        return max_flow
+    
+    def plot_graph(self, step: int) -> None:
+        """
+        Visualizes the graph after each step of augmentation.
+        Ensures unidirectional arrows and correct flow display.
+        """
+        G = nx.DiGraph()  # Create a directed graph
+
+        # Add nodes to the graph
+        for node in self.nodes.values():
+            G.add_node(node.name)
+
+        # Add edges with capacity and flow as labels
+        for node in self.nodes.values():
+            for edge in node.edges:
+                if edge.capacity > 0:  # Only consider edges with capacity > 0
+                    flow_label = f"Flow: {-edge.flow}"
+                    capacity_label = f"Capacity: {edge.capacity}"
+                    G.add_edge(node.name, edge.target.name, label=f"{capacity_label}\n{flow_label}")
+
+        # Draw the graph with custom settings
+        pos = nx.spring_layout(G)  # Set positions for all nodes
+        plt.figure(figsize=(8, 6))
+        nx.draw(G, pos, with_labels=True, node_size=3000, node_color="lightblue", font_size=12, font_weight="bold", arrows=True)
+        
+        # Edge labels for capacity and flow
+        edge_labels = nx.get_edge_attributes(G, "label")
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=10)
+
+        plt.title(f"Graph at Step {step}")
+        plt.show()
+
+    def edmonds_karp_demo(self, source: Node, sink: Node) -> float:
+        max_flow = 0
+        step = 1  # Step counter for augmentation
+
+        while True:
+            # Find an augmenting path using BFS
+            parent_map = self.bfs(source, sink)
+            if not parent_map:  # No more augmenting paths
+                break
+
+            # Calculate bottleneck capacity (minimum residual capacity on the path)
+            path_flow = float('inf')
+            current = sink
+            augmenting_path = []  # To store the path for printing
+
+            while current != source:
+                edge = parent_map[current]
+                augmenting_path.append((edge.reverse.target.name, current.name))
+                path_flow = min(path_flow, edge.capacity - edge.flow)
+                current = edge.reverse.target
+
+            augmenting_path.reverse()  # Reverse to show path from source to sink
+
+            # Augment flow along the path
+            current = sink
+            while current != source:
+                edge = parent_map[current]
+                edge.flow += path_flow
+                edge.reverse.flow -= path_flow
+                current = edge.reverse.target
+
+            # Add path flow to max flow
+            max_flow += path_flow
+
+            # Print details after each augmentation step
+            print(f"\n=== Augmentation Step {step} ===")
+            print(f"Augmenting Path: {' -> '.join(node for node, _ in augmenting_path)} -> {sink.name}")
+            print(f"Bottleneck Capacity: {path_flow}")
+            print(f"Updated Flows:")
+
+            for node in self.nodes.values():
+                for edge in node.edges:
+                    if edge.capacity > 0 and edge.flow>0:  # Only print forward edges
+                        print(f"  {node.name} -> {edge.target.name} | Capacity: {edge.capacity}, Flow: {edge.flow}")
+
+            # Visualize the graph at this step
+            self.plot_graph(step)
+
+            step += 1
 
         return max_flow
     
