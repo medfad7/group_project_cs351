@@ -21,7 +21,7 @@ class Node:
     def add_edge(self, target: Node, capacity: float) -> None:
 
         forward_edge = Edge(target, capacity)
-        reverse_edge = Edge(self, capacity)  # Reverse edge has 0 capacity initially
+        reverse_edge = Edge(self, capacity)
 
         forward_edge.reverse = reverse_edge
         reverse_edge.reverse = forward_edge
