@@ -1,9 +1,12 @@
-from graph import Node, Graph
+from .graph import Node, Graph
 import pytest
 
 def assert_both(graph, nodes, expected, message):
     max_flow_ek = graph.edmonds_karp(nodes["S"], nodes["T"])
     assert max_flow_ek == expected, "Edmonds-Karp " + message
+
+    graph.reset_calculated_flows()
+    
     max_flow_d = graph.dinic(nodes["S"], nodes["T"])
     assert max_flow_d == expected, "Dinic " + message
 
