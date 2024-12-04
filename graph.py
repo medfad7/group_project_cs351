@@ -153,7 +153,7 @@ class Graph:
         # Add edges with capacity and flow as labels
         for node in self.nodes.values():
             for edge in node.edges:
-                if edge.capacity > 0:  # Only consider edges with capacity > 0
+                if edge.capacity > 0:
                     flow_label = f"Flow: {-edge.flow}"
                     capacity_label = f"Capacity: {edge.capacity}"
                     G.add_edge(node.name, edge.target.name, label=f"{capacity_label}\n{flow_label}")
@@ -172,18 +172,16 @@ class Graph:
 
     def edmonds_karp_demo(self, source: Node, sink: Node) -> float:
         max_flow = 0
-        step = 1  # Step counter for augmentation
+        step = 1
 
         while True:
-            # Find an augmenting path using BFS
             parent_map = self.bfs(source, sink)
-            if not parent_map:  # No more augmenting paths
+            if not parent_map:
                 break
 
-            # Calculate bottleneck capacity (minimum residual capacity on the path)
             path_flow = float('inf')
             current = sink
-            augmenting_path = []  # To store the path for printing
+            augmenting_path = []
 
             while current != source:
                 edge = parent_map[current]
@@ -191,9 +189,8 @@ class Graph:
                 path_flow = min(path_flow, edge.capacity - edge.flow)
                 current = edge.reverse.target
 
-            augmenting_path.reverse()  # Reverse to show path from source to sink
+            augmenting_path.reverse()
 
-            # Augment flow along the path
             current = sink
             while current != source:
                 edge = parent_map[current]
@@ -201,10 +198,8 @@ class Graph:
                 edge.reverse.flow -= path_flow
                 current = edge.reverse.target
 
-            # Add path flow to max flow
             max_flow += path_flow
 
-            # Print details after each augmentation step
             print(f"\n=== Augmentation Step {step} ===")
             print(f"Augmenting Path: {' -> '.join(node for node, _ in augmenting_path)} -> {sink.name}")
             print(f"Bottleneck Capacity: {path_flow}")
@@ -215,7 +210,6 @@ class Graph:
                     if edge.capacity > 0 and edge.flow>0:  # Only print forward edges
                         print(f"  {node.name} -> {edge.target.name} | Capacity: {edge.capacity}, Flow: {edge.flow}")
 
-            # Visualize the graph at this step
             self.plot_graph(step)
 
             step += 1

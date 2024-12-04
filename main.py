@@ -1,7 +1,7 @@
 import time
 import matplotlib.pyplot as plt
 from graph import Node, Graph
-from test_flows import test_complex_graph, test_simple_graph
+
 
 def measure_runtime_vs_maxflow_E():
     # Lists to store graph sizes, computed max flow * E values, and runtimes
