@@ -29,7 +29,6 @@ graph = Graph({"Source": source, "A": a, "B": b, "C": c, "Sink": sink})
 # source = nodes[str("S")]  # Source is node "10"
 # sink = nodes[str("T")]    # Sink is node "9"
 
-# # Add edges as per the example
 # # Source edges
 # nodes["S"].add_edge(nodes["0"], 5)
 # nodes["S"].add_edge(nodes["1"], 10)

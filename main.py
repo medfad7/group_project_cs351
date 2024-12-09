@@ -11,7 +11,7 @@ def measure_runtime_vs_maxflow_E():
     dinic_runtimes = []
 
     # Test on various sizes of graphs
-    for size in [10, 100, 1000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000]:
+    for size in [10, 100, 1000, 10000, 20000, 30000]:
         # Generate the random graph with `size` nodes and `size*2` edges
         g = Graph.generate_random_graph(size, size * 2, 10)
         source = next(iter(g.nodes.values()))  # Start node
